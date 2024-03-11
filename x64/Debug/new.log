@@ -1,5 +1,7 @@
 ﻿  new.cpp
-C:\Users\Lenovo\Desktop\Projects\new\new.cpp(60,37): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
-C:\Users\Lenovo\Desktop\Projects\new\new.cpp(66,34): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
-C:\Users\Lenovo\Desktop\Projects\new\new.cpp(498,37): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-  new.vcxproj -> C:\Users\Lenovo\Desktop\Projects\new\x64\Debug\new.exe
+C:\Users\Lenovo\Desktop\Projects\Bank-Project\new.cpp(74,37): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
+C:\Users\Lenovo\Desktop\Projects\Bank-Project\new.cpp(80,34): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
+C:\Users\Lenovo\Desktop\Projects\Bank-Project\new.cpp(150,35): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
+C:\Users\Lenovo\Desktop\Projects\Bank-Project\new.cpp(156,32): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
+C:\Users\Lenovo\Desktop\Projects\Bank-Project\new.cpp(594,37): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+  new.vcxproj -> C:\Users\Lenovo\Desktop\Projects\Bank-Project\x64\Debug\new.exe
