@@ -882,13 +882,61 @@ void performManageUsersOptions(enManageUsersMenu selectChoice, vector<stUserReco
 	}
 }
 
+//_____________________________________________________________________________________
+// Log In
 
+void lodInScreen() {
+
+	cout << "===========================================================\n";
+	cout << "                       LOG IN SCREEN\n";
+	cout << "===========================================================\n";
+}
+
+void logIn() {
+
+	lodInScreen();
+	vector<stClientRecord> vClientsRecord = loadDataFromFileToStVector(fileName);
+	vector<stUserRecord> vUsersRecord = loadDataFromAdminsFileToStVector(adminsFileName);
+
+	short userCounter = 0;
+
+	do {
+		cout << "User Name: ";
+		string userName = readString();
+		short passCounter = 0;
+
+		for (int i = 0; i < vUsersRecord.size(); i++) {
+
+			if (userName == vUsersRecord[i].userName) {
+
+				do {
+					cout << "Password: ";
+
+					string password = readString();
+
+					if (password == vUsersRecord[i].passWord) {
+						showMainMenu(vClientsRecord, vUsersRecord);
+						break;
+					}
+					passCounter++;
+					cout << "Wrong Password..." << "\nyou have used " << passCounter << " of 3 trials\n";
+				}
+
+				while (passCounter < 3);
+				cout << "\n\nAccount locked... please contact your admin..\n";
+				exit(0);
+			}
+		}
+		userCounter++;
+		cout << "User name " << userName << " doesn't exist ... you have used " << userCounter << " of 3 trials\n";
+	} while (userCounter < 3);
+
+	cout << "\n\nAccount locked... please contact your admin..\n";
+}
 
 int main() {
 
-	vector<stClientRecord> vClientsRecord = loadDataFromFileToStVector(fileName);
-	vector<stUserRecord> vUsersRecord = loadDataFromAdminsFileToStVector(adminsFileName);
-	showMainMenu(vClientsRecord,vUsersRecord);
+	logIn();
 
 	system("pause>0");
 	return 0;
