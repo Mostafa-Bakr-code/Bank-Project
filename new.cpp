@@ -13,6 +13,8 @@ using namespace std;
 string fileName = "clientsData.txt";
 string adminsFileName = "adminsData.txt";
 
+
+
 struct stClientRecord {
 	string accountNumber, pinCode, clientName, phone;
 	double balance;
@@ -38,8 +40,8 @@ void performTransactionsOptions(enTransactions selectChoice, vector<stClientReco
 void showTransactionScreen(vector<stClientRecord>& vClientsRecord, short& accountPosition, vector<stUserRecord> &vUsersRecord);
 
 
-void performManageUsersOptions(enManageUsersMenu selectChoice, vector<stUserRecord> &vUsersRecord, short& accountPosition);
-void showManageUsersScreen(vector<stUserRecord> &vUsersRecord, short& accountPosition);
+void performManageUsersOptions(enManageUsersMenu selectChoice, vector<stUserRecord> &vUsersRecord, short& accountPosition, vector<stClientRecord> vClientsRecord, short& userAccountPosition);
+void showManageUsersScreen(vector<stUserRecord> &vUsersRecord, short& accountPosition, vector<stClientRecord> vClientsRecord, short& userAccountPosition);
 
 
 
@@ -131,7 +133,7 @@ string fromStUserRecordToLine(stUserRecord& userRecord, string seperator = "#//#
 
 	userRecordLine += userRecord.userName + seperator;
 	userRecordLine += userRecord.passWord + seperator;
-	userRecordLine += to_string(userRecord.permissions) + seperator;
+	userRecordLine += to_string(userRecord.permissions);
 
 
 	return userRecordLine;
@@ -448,7 +450,7 @@ void performMainMenuOption(enMainMenu selectChoice, vector<stClientRecord>& vCli
 	
 	string accountNumber = "";
 	short accountPosition = 0;
-
+	short userAccountPosition = 0;
 
 	switch (selectChoice) {
 	case enMainMenu::showList: system("cls"); printAllRecords(vClientsRecord); returnToMainMenu(vClientsRecord,vUsersRecord); break;
@@ -457,8 +459,8 @@ void performMainMenuOption(enMainMenu selectChoice, vector<stClientRecord>& vCli
 	case enMainMenu::deleteClient: system("cls"); deleteClientByAccountNumber(vClientsRecord,accountPosition); returnToMainMenu(vClientsRecord,vUsersRecord); break;
 	case enMainMenu::updateClient: system("cls"); updateClientByAccountNumber(vClientsRecord,accountPosition); returnToMainMenu(vClientsRecord,vUsersRecord); break;
 	case enMainMenu::transactions: system("cls"); showTransactionScreen(vClientsRecord, accountPosition,vUsersRecord); system("pause>0"); break;
-	case enMainMenu::manageUsers: system("cls"); showManageUsersScreen(vUsersRecord, accountPosition); system("pause>0"); break;
-	case enMainMenu::Exit: system("cls"); loadDataFromVectorTofile(fileName, vClientsRecord); exitProgram(vClientsRecord,vUsersRecord); break;
+	case enMainMenu::manageUsers: system("cls"); showManageUsersScreen(vUsersRecord, accountPosition,vClientsRecord,accountPosition); system("pause>0"); break;
+	case enMainMenu::Exit: system("cls"); loadDataFromVectorTofile(fileName, vClientsRecord); loadDataFromVectorTofile(adminsFileName,vUsersRecord); exitProgram(vClientsRecord, vUsersRecord); break;
 
 	}
 }
@@ -618,7 +620,7 @@ void performTransactionsOptions(enTransactions selectChoice, vector<stClientReco
 //_____________________________________________________________________________________________
 // Manage Users
 
-void showManageUsersScreen(vector<stUserRecord>& vUsersRecord, short& accountPosition) {
+void showManageUsersScreen(vector<stUserRecord>& vUsersRecord, short& accountPosition, vector<stClientRecord> vClientsRecord, short& userAccountPosition) {
 
 
 	system("cls");
@@ -649,52 +651,233 @@ void showManageUsersScreen(vector<stUserRecord>& vUsersRecord, short& accountPos
 
 	cout << "\n           Select your option [1] - [6]\n";
 
-	performManageUsersOptions(enManageUsersMenu(readNumberFromTo(1, 6)), vUsersRecord, accountPosition);
+	performManageUsersOptions(enManageUsersMenu(readNumberFromTo(1, 6)), vUsersRecord, accountPosition,vClientsRecord,userAccountPosition);
 }
 
 void printUserRecord(stUserRecord userRecord) {
 
 
-	cout << "|  " << setw(15) << left << userRecord.userName;
+	cout << "|  " << setw(30) << left << userRecord.userName;
 	cout << "|  " << setw(10) << left << userRecord.passWord;
-	cout << "|  " << setw(40) << left << userRecord.permissions;
+	cout << "|  " << setw(10) << left << userRecord.permissions;
 
 }
 
 void printAllUsersRecords(vector<stUserRecord> vUsersRecord) {
-
-	cout << "           " << "Users List (" << vUsersRecord.size() << ") " << "Users." << endl;
-	for (int i = 0; i < 100; i++) {
+	cout << "\n";
+	cout << "                            " << "Users List (" << vUsersRecord.size() << ") " << "Users." << endl;
+	for (int i = 0; i < 80; i++) {
 		cout << "_";
 	}
 	cout << "\n\n";
-	cout << "|  " << left << setw(15) << "User-Name";
+	cout << "|  " << left << setw(30) << "User-Name";
 	cout << "|  " << left << setw(10) << "Password";
-	cout << "|  " << left << setw(40) << "Permissions";
-
+	cout << "|  " << left << setw(10) << "Permissions";
+	cout << "\n";
 
 	for (stUserRecord& record : vUsersRecord) {
+	
 		printUserRecord(record);
 		cout << endl;
 	}
 }
 
-void returnToManageUsersMenu(vector<stUserRecord>& vUsersRecord, short& accountPosition) {
+bool isUserNameExist(vector<stUserRecord>& vUsersRecord, string userName, short& userAccountPosition) {
+
+	for (short i = 0; i < vUsersRecord.size(); i++) {
+
+		if (vUsersRecord[i].userName == userName) {
+			cout << "\n\n";
+			cout << "|  " << left << setw(30) << "User-Name";
+			cout << "|  " << left << setw(10) << "Password";
+			cout << "|  " << left << setw(10) << "Permissions";
+			cout << "\n";
+			printUserRecord(vUsersRecord[i]);
+			cout << "\n";
+			userAccountPosition = i;
+			return true;
+		}
+	}
+	return false;
+}
+
+void findUserByUserName(vector<stUserRecord>& vUsersRecord, short& userAccountPosition) {
+
+	cout << "Enter User Name: ";
+	string userName = readString();
+
+	if (!isUserNameExist(vUsersRecord, userName, userAccountPosition)) {
+		cout << "User Name " << userName << " does not exist...\n";
+	}
+}
+
+void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
+
+	stUserRecord stNewUser;
+	enMainMenu enpermissions;
+
+	do {
+
+		system("cls");
+		cout << "Adding New User ..\n";
+		cout << "Enter User's Name: ";
+		stNewUser.userName = readString();
+
+		while (isUserNameExist(vUserRecord, stNewUser.userName, userAccountPosition)) {
+			system("cls");
+			cout << "User-name " << stNewUser.userName << " already exist..\n";
+			cout << "\nPlease entre a different user name: ";
+			stNewUser.userName = readString();
+		}
+
+		cout << "Enter Client's Password: ";
+		stNewUser.passWord = readString();
+
+		cout << "Do you want to give full access? y/n ";
+
+		if (readChar() == 'y') {
+			
+			stNewUser.permissions = -1;
+
+		}
+
+		else {
+
+			stNewUser.permissions = 0;
+			cout << "Do you want to give access to....\n";
+			cout << "Show Clients List? y/n \n";
+
+			if (readChar() == 'y') {
+
+				stNewUser.permissions |= enMainMenu::showList;
+			
+			}
+
+			cout << "Add Client? y/n \n";
+
+			if (readChar() == 'y') {
+
+				stNewUser.permissions |= enMainMenu::addClient;
+				
+			}
+
+			cout << "Delete Client? y/n \n";
+
+			if (readChar() == 'y') {
+
+				stNewUser.permissions |= enMainMenu::deleteClient;
+				
+			}
+
+			cout << "Update Client? y/n \n";
+
+			if (readChar() == 'y') {
+
+				stNewUser.permissions |= enMainMenu::updateClient;
+				
+			}
+
+			cout << "Find Clients? y/n \n";
+
+			if (readChar() == 'y') {
+
+				stNewUser.permissions |= enMainMenu::findClient;
+				
+			}
+
+			cout << "Transactions? y/n \n";
+
+			if (readChar() == 'y') {
+
+				stNewUser.permissions |= enMainMenu::transactions;
+				
+			}
+
+			cout << "Manage Users? y/n \n";
+
+			if (readChar() == 'y') {
+
+				stNewUser.permissions |= enMainMenu::manageUsers;
+				
+			}
+
+		}
+
+		cout << stNewUser.permissions;
+
+		vUserRecord.push_back(stNewUser);
+		cout << "\n\nUser added successfully...\n";
+		cout << "Do you want to Add more users? y/n\n\n";
+
+
+	} while (readChar() == 'y');
+
+
+}
+
+void deleteUserByAccountNumber(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
+
+	cout << "Entre User-name you want to delete: ";
+	string userName = readString();
+
+	if (isUserNameExist(vUserRecord, userName, userAccountPosition)) {
+
+
+		cout << "\nAre you sure you want to delete this user? y/n\n";
+		if (readChar() == 'y') {
+			vUserRecord.erase(vUserRecord.begin() + userAccountPosition);
+			cout << "\nAccount " << userName << " deleted successfully";
+
+		}
+
+
+	}
+	else {
+		cout << "User name " << userName << " doesn't exist..";
+	}
+}
+
+void updateUserByUserName(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
+
+	cout << "Entre User-name you want to update: ";
+	string userName = readString();
+
+	if (isUserNameExist(vUserRecord, userName, userAccountPosition)) {
+
+		cout << "\nAre you sure you want to update this user? y/n\n";
+		if (readChar() == 'y') {
+			cout << "Update user's info...\n";
+			cout << "Update Name: ";
+			vUserRecord[userAccountPosition].userName = readString();
+			cout << "Update Password: ";
+			vUserRecord[userAccountPosition].passWord = readString();
+			cout << "Update Permissions: ";
+			vUserRecord[userAccountPosition].permissions = readPositiveNumber();
+			cout << "\nUser Updated successfully...";
+
+		}
+	}
+	else {
+		cout << "Account " << userName << " doesn't exist..";
+	}
+}
+
+void returnToManageUsersMenu(vector<stUserRecord>& vUsersRecord, short& accountPosition, vector<stClientRecord> vClientsRecord, short& userAccountPosition) {
 
 	cout << "\n press any key to go back...";
 	system("pause>0");
-	showManageUsersScreen(vUsersRecord, accountPosition);
+	showManageUsersScreen(vUsersRecord, accountPosition,vClientsRecord,userAccountPosition);
 }
 
-void performManageUsersOptions(enManageUsersMenu selectChoice, vector<stUserRecord>& vUsersRecord, short& accountPosition) {
+void performManageUsersOptions(enManageUsersMenu selectChoice, vector<stUserRecord>& vUsersRecord, short& accountPosition, vector<stClientRecord> vClientsRecord, short& userAccountPosition) {
 
 	switch (selectChoice) {
-	case enManageUsersMenu::listOfUsers:system("cls"); printAllUsersRecords(vUsersRecord); returnToManageUsersMenu(vUsersRecord, accountPosition); break;
-	case enManageUsersMenu::addNewUser:system("cls");  returnToManageUsersMenu(vUsersRecord, accountPosition); break;
-	case enManageUsersMenu::findUser:system("cls"); returnToManageUsersMenu(vUsersRecord, accountPosition); break;
-	case enManageUsersMenu::updateUser:system("cls"); returnToManageUsersMenu(vUsersRecord, accountPosition); break;
-	case enManageUsersMenu::deleteUser:system("cls"); returnToManageUsersMenu(vUsersRecord, accountPosition); break;
-	case enManageUsersMenu::mainMenuGo:system("cls"); returnToManageUsersMenu(vUsersRecord, accountPosition); break;
+	case enManageUsersMenu::listOfUsers:system("cls"); printAllUsersRecords(vUsersRecord); returnToManageUsersMenu(vUsersRecord, accountPosition,vClientsRecord,userAccountPosition); break;
+	case enManageUsersMenu::addNewUser:system("cls");addUser(vUsersRecord,userAccountPosition); returnToManageUsersMenu(vUsersRecord, accountPosition, vClientsRecord, userAccountPosition); break;
+	case enManageUsersMenu::findUser:system("cls");findUserByUserName(vUsersRecord,userAccountPosition); returnToManageUsersMenu(vUsersRecord, accountPosition, vClientsRecord,userAccountPosition); break;
+	case enManageUsersMenu::updateUser:system("cls");updateUserByUserName(vUsersRecord,userAccountPosition); returnToManageUsersMenu(vUsersRecord, accountPosition, vClientsRecord, userAccountPosition); break;
+	case enManageUsersMenu::deleteUser:system("cls");deleteUserByAccountNumber(vUsersRecord,userAccountPosition); returnToManageUsersMenu(vUsersRecord, accountPosition, vClientsRecord, userAccountPosition); break;
+	case enManageUsersMenu::mainMenuGo:system("cls"); returnToMainMenu(vClientsRecord,vUsersRecord); break;
 
 	}
 }
@@ -703,10 +886,8 @@ void performManageUsersOptions(enManageUsersMenu selectChoice, vector<stUserReco
 
 int main() {
 
-	
 	vector<stClientRecord> vClientsRecord = loadDataFromFileToStVector(fileName);
 	vector<stUserRecord> vUsersRecord = loadDataFromAdminsFileToStVector(adminsFileName);
-
 	showMainMenu(vClientsRecord,vUsersRecord);
 
 	system("pause>0");
