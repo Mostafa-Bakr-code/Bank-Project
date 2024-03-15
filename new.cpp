@@ -44,7 +44,7 @@ void showTransactionScreen(vector<stClientRecord>& vClientsRecord, short& accoun
 void performManageUsersOptions(enManageUsersMenu selectChoice, vector<stUserRecord> &vUsersRecord, short& accountPosition, vector<stClientRecord> vClientsRecord, short& userAccountPosition, stUserRecord& activeUserRecord);
 void showManageUsersScreen(vector<stUserRecord> &vUsersRecord, short& accountPosition, vector<stClientRecord> vClientsRecord, short& userAccountPosition, stUserRecord& activeUserRecord);
 
-
+bool CheckAccessPermission(enMainMenuPermissions& Permission, stUserRecord& activeUserRecord);
 
 //___________________________________________________________________________________________________
 
@@ -452,16 +452,93 @@ void performMainMenuOption(enMainMenu selectChoice, vector<stClientRecord>& vCli
 	string accountNumber = "";
 	short accountPosition = 0;
 	short userAccountPosition = 0;
+	enMainMenuPermissions permission;
 
 	switch (selectChoice) {
-	case enMainMenu::showList: system("cls"); printAllRecords(vClientsRecord); returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord); break;
-	case enMainMenu::addClient: system("cls"); addClients(vClientsRecord,accountPosition); returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord); break;
-	case enMainMenu::findClient: system("cls"); cout << "Enter Account Number: "; accountNumber = readString();if (!isAccountNumberExist(vClientsRecord, accountNumber, accountPosition)) { cout << "Account " << accountNumber << " doesn't exist.."; }; returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord); break;
-	case enMainMenu::deleteClient: system("cls"); deleteClientByAccountNumber(vClientsRecord,accountPosition); returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord); break;
-	case enMainMenu::updateClient: system("cls"); updateClientByAccountNumber(vClientsRecord,accountPosition); returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord); break;
-	case enMainMenu::transactions: system("cls"); showTransactionScreen(vClientsRecord, accountPosition,vUsersRecord,activeUserRecord); system("pause>0"); break;
-	case enMainMenu::manageUsers: system("cls"); showManageUsersScreen(vUsersRecord, accountPosition,vClientsRecord,userAccountPosition,activeUserRecord); system("pause>0"); break;
-	case enMainMenu::Exit: system("cls"); loadDataFromVectorTofile(fileName, vClientsRecord); loadDataFromVectorTofile(adminsFileName,vUsersRecord); exitProgram(vClientsRecord, vUsersRecord,activeUserRecord); break;
+
+	case enMainMenu::showList: 
+		system("cls"); 
+		permission = enMainMenuPermissions::pListClients;
+		if (!CheckAccessPermission(permission, activeUserRecord)) {
+			cout << "\nAccess Denied\nPlease Contact your Admin...\n";
+			returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord);
+		};
+		printAllRecords(vClientsRecord);
+		returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord); 
+		break;
+
+	case enMainMenu::addClient:
+		system("cls");
+		permission = enMainMenuPermissions::pAddNewClient;
+		if (!CheckAccessPermission(permission, activeUserRecord)) {
+			cout << "Access Denied";
+			returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord);
+		};
+		addClients(vClientsRecord,accountPosition);
+		returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord);
+		break;
+
+	case enMainMenu::findClient:
+		system("cls");
+		permission = enMainMenuPermissions::pFindClient;
+		if (!CheckAccessPermission(permission, activeUserRecord)) {
+			cout << "\nAccess Denied\nPlease Contact your Admin...\n";
+			returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord);
+		};
+		cout << "Enter Account Number: "; accountNumber = readString();
+		if (!isAccountNumberExist(vClientsRecord, accountNumber, accountPosition)) { cout << "Account " << accountNumber << " doesn't exist.."; };
+		returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord);
+		break;
+
+	case enMainMenu::deleteClient:
+		system("cls");
+		permission = enMainMenuPermissions::pDeleteClient;
+		if (!CheckAccessPermission(permission, activeUserRecord)) {
+			cout << "\nAccess Denied\nPlease Contact your Admin...\n";
+			returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord);
+		};
+		deleteClientByAccountNumber(vClientsRecord,accountPosition);
+		returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord);
+		break;
+
+	case enMainMenu::updateClient:
+		system("cls");
+		permission = enMainMenuPermissions::pUpdateClients;
+		if (!CheckAccessPermission(permission, activeUserRecord)) {
+			cout << "\nAccess Denied\nPlease Contact your Admin...\n";
+			returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord);
+		};
+		updateClientByAccountNumber(vClientsRecord,accountPosition);
+		returnToMainMenu(vClientsRecord,vUsersRecord,activeUserRecord);
+		break;
+	case enMainMenu::transactions:
+		system("cls");
+		permission = enMainMenuPermissions::pTransactions;
+		if (!CheckAccessPermission(permission, activeUserRecord)) {
+			cout << "\nAccess Denied\nPlease Contact your Admin...\n";
+			returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord);
+		};
+		showTransactionScreen(vClientsRecord, accountPosition,vUsersRecord,activeUserRecord);
+		system("pause>0");
+		break;
+
+	case enMainMenu::manageUsers:
+		system("cls");
+		permission = enMainMenuPermissions::pManageUsers;
+		if (!CheckAccessPermission(permission, activeUserRecord)) {
+			cout << "\nAccess Denied\nPlease Contact your Admin...\n";
+			returnToMainMenu(vClientsRecord, vUsersRecord, activeUserRecord);
+		};
+		showManageUsersScreen(vUsersRecord, accountPosition,vClientsRecord,userAccountPosition,activeUserRecord);
+		system("pause>0");
+		break;
+
+	case enMainMenu::Exit:
+		system("cls");
+		loadDataFromVectorTofile(fileName, vClientsRecord);
+		loadDataFromVectorTofile(adminsFileName,vUsersRecord);
+		exitProgram(vClientsRecord, vUsersRecord,activeUserRecord);
+		break;
 
 	}
 }
@@ -717,6 +794,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 	stUserRecord stNewUser;
 	enMainMenuPermissions enUserPermission;
+	
 
 	do {
 
@@ -739,7 +817,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 		if (readChar() == 'y') {
 			
-			stNewUser.permissions = -1;
+			stNewUser.permissions += enMainMenuPermissions::eAll;
 
 		}
 
@@ -751,7 +829,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 			if (readChar() == 'y') {
 
-				stNewUser.permissions |= enMainMenuPermissions::pListClients;
+				stNewUser.permissions += enMainMenuPermissions::pListClients;
 			
 			}
 
@@ -759,7 +837,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 			if (readChar() == 'y') {
 
-				stNewUser.permissions |= enMainMenuPermissions::pAddNewClient;
+				stNewUser.permissions += enMainMenuPermissions::pAddNewClient;
 				
 			}
 
@@ -767,7 +845,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 			if (readChar() == 'y') {
 
-				stNewUser.permissions |= enMainMenuPermissions::pDeleteClient;
+				stNewUser.permissions += enMainMenuPermissions::pDeleteClient;
 				
 			}
 
@@ -775,7 +853,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 			if (readChar() == 'y') {
 
-				stNewUser.permissions |= enMainMenuPermissions::pUpdateClients;
+				stNewUser.permissions += enMainMenuPermissions::pUpdateClients;
 				
 			}
 
@@ -783,7 +861,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 			if (readChar() == 'y') {
 
-				stNewUser.permissions |= enMainMenuPermissions::pFindClient;
+				stNewUser.permissions += enMainMenuPermissions::pFindClient;
 				
 			}
 
@@ -791,7 +869,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 			if (readChar() == 'y') {
 
-				stNewUser.permissions |= enMainMenuPermissions::pTransactions;
+				stNewUser.permissions += enMainMenuPermissions::pTransactions;
 				
 			}
 
@@ -799,7 +877,7 @@ void addUser(vector<stUserRecord>& vUserRecord, short& userAccountPosition) {
 
 			if (readChar() == 'y') {
 
-				stNewUser.permissions |= enMainMenuPermissions::pManageUsers;
+				stNewUser.permissions += enMainMenuPermissions::pManageUsers;
 				
 			}
 
@@ -853,11 +931,83 @@ void updateUserByUserName(vector<stUserRecord>& vUserRecord, short& userAccountP
 			vUserRecord[userAccountPosition].userName = readString();
 			cout << "Update Password: ";
 			vUserRecord[userAccountPosition].passWord = readString();
-			cout << "Update Permissions: ";
-			vUserRecord[userAccountPosition].permissions = readPositiveNumber();
-			cout << "\nUser Updated successfully...";
+			cout << "Do you want to give full access? y/n ";
 
-		}
+			if (readChar() == 'y') {
+
+				vUserRecord[userAccountPosition].permissions = enMainMenuPermissions::eAll;
+
+			}
+
+			else {
+
+				vUserRecord[userAccountPosition].permissions = 0;
+				cout << "Do you want to give access to....\n";
+				cout << "Show Clients List? y/n \n";
+
+				if (readChar() == 'y') {
+
+					vUserRecord[userAccountPosition].permissions += enMainMenuPermissions::pListClients;
+
+				}
+
+				cout << "Add Client? y/n \n";
+
+				if (readChar() == 'y') {
+
+					vUserRecord[userAccountPosition].permissions += enMainMenuPermissions::pAddNewClient;
+
+				}
+
+				cout << "Delete Client? y/n \n";
+
+				if (readChar() == 'y') {
+
+					vUserRecord[userAccountPosition].permissions += enMainMenuPermissions::pDeleteClient;
+
+				}
+
+				cout << "Update Client? y/n \n";
+
+				if (readChar() == 'y') {
+
+					vUserRecord[userAccountPosition].permissions += enMainMenuPermissions::pUpdateClients;
+
+				}
+
+				cout << "Find Clients? y/n \n";
+
+				if (readChar() == 'y') {
+
+					vUserRecord[userAccountPosition].permissions += enMainMenuPermissions::pFindClient;
+
+				}
+
+				cout << "Transactions? y/n \n";
+
+				if (readChar() == 'y') {
+
+					vUserRecord[userAccountPosition].permissions += enMainMenuPermissions::pTransactions;
+
+				}
+
+				cout << "Manage Users? y/n \n";
+
+				if (readChar() == 'y') {
+
+					vUserRecord[userAccountPosition].permissions += enMainMenuPermissions::pManageUsers;
+
+				}
+
+			}
+
+			cout << "\n\nUser added successfully...\n";
+			cout << "Do you want to Add more users? y/n\n\n";
+
+
+		} while (readChar() == 'y');
+
+		
 	}
 	else {
 		cout << "Account " << userName << " doesn't exist..";
@@ -937,10 +1087,27 @@ void logIn() {
 	cout << "\n\nAccount locked... please contact your admin..\n";
 }
 
+//_____________________________________________________________________________________
+// Permissions
+
+bool CheckAccessPermission(enMainMenuPermissions &Permission, stUserRecord& activeUserRecord){
+
+	if (activeUserRecord.permissions == enMainMenuPermissions::eAll) 
+	{ 
+		return true; }
+
+	if ((Permission & activeUserRecord.permissions) == Permission) { 
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+//_______________________________________________________________________________________
 int main() {
 
 	logIn();
-
 	system("pause>0");
 	return 0;
 
